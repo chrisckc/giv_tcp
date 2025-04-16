@@ -16,7 +16,7 @@ with open("/config/GivTCP/allsettings.json", "r") as inp:
 if setts["evc_enable"]==True:
     import evc
 
-#connected_flag=False     
+#connected_flag=False
 _mqttclient=mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, "GivEnergy_GivTCP_"+str(GiV_Settings.givtcp_instance))
 _mqttclient.connected_flag=False
 
@@ -47,13 +47,13 @@ class GivMQTT():
         try:
             global _mqttclient
             if not _mqttclient.connected_flag:
-                logger.debug("MQTT Connection appears closed, re-opening")
+                logger.info("MQTT Connection appears closed, re-opening")
                 if GivMQTT.MQTTCredentials:
                     _mqttclient.username_pw_set(GivMQTT.MQTT_Username,GivMQTT.MQTT_Password)
                 _mqttclient.on_connect=GivMQTT.on_connect     			#bind call back function
                 _mqttclient.on_disconnect=GivMQTT.on_disconnect     	   #bind call back function
                 _mqttclient.on_message=GivMQTT.on_message               #bind call back function
-                logger.debug("Opening MQTT Connection to "+str(GivMQTT.MQTT_Address))
+                logger.info("Opening MQTT Connection to "+str(GivMQTT.MQTT_Address))
                 _mqttclient.connect(GivMQTT.MQTT_Address,port=GivMQTT.MQTT_Port)
                 _mqttclient.loop_start()
             return _mqttclient
@@ -71,14 +71,14 @@ class GivMQTT():
     def on_disconnect(_client, userdata, flags, reason_code, properties):
         _client.connected_flag=False #set flag
         _client.loop_stop()
-        logger.debug("MQTT connection disconnected")
+        logger.info("MQTT connection disconnected")
 
     def on_connect(_client, userdata, flags, reason_code, properties):
         if reason_code==0:
             _client.connected_flag=True #set flag
-            logger.debug("connected OK Returned code="+str(reason_code))
+            logger.info("connected OK Returned code="+str(reason_code))
             _client.subscribe(GivMQTT.MQTT_Topic+"/control/"+GiV_Settings.serial_number+"/#")
-            logger.debug("Subscribing to "+GivMQTT.MQTT_Topic+"/control/"+GiV_Settings.serial_number+"/#")
+            logger.info("Subscribing to "+GivMQTT.MQTT_Topic+"/control/"+GiV_Settings.serial_number+"/#")
         else:
             logger.error("Bad connection Returned code= "+str(reason_code))
 
@@ -129,10 +129,10 @@ class GivMQTT():
         else:
             MQTT_LUT[topic]=array
         return(MQTT_LUT)
-    
+
     def on_message(client, userdata, message):
         payload={}
-        logger.debug("MQTT Message Recieved: "+str(message.topic)+"= "+str(message.payload.decode("utf-8")))
+        logger.info("MQTT Message Recieved: "+str(message.topic)+"= "+str(message.payload.decode("utf-8")))
         payload={}
         try:
             command=str(message.topic).split("/")[-1]
@@ -746,7 +746,7 @@ class GivMQTT():
             e=sys.exc_info()[0].__name__, basename(sys.exc_info()[2].tb_frame.f_code.co_filename), sys.exc_info()[2].tb_lineno
             logger.error("MQTT.OnMessage Exception: "+str(e))
             return
-    
+
 def isfloat(num):
     try:
         float(num)
@@ -756,7 +756,7 @@ def isfloat(num):
 
 def requestcommand(command,payload):
     requests=[]
-    logger.debug("Requesting Control Action: "+str(command)+" - "+str(payload))
+    logger.info("Requesting Control Action: "+str(command)+" - "+str(payload))
     if exists(GivLUT.writerequests):
         with open(GivLUT.writerequests,'rb') as inp:
             requests=pickle.load(inp)
